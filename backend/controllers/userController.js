@@ -9,12 +9,12 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
         if (password !== confirmPassword) {
-            return res.status(400).json({ message: "Password do not match" });
+            return res.status(400).json({ message: "Password does not match" });
         }
 
         const user = await User.findOne({ username });
         if (user) {
-            return res.status(400).json({ message: "Username already exit try different" });
+            return res.status(400).json({ message: "Username already exists try different" });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -77,7 +77,7 @@ export const login = async (req, res) => {
 export const logout = (req, res) => {
     try {
         return res.status(200).cookie("token", "", { maxAge: 0 }).json({
-            message: "logged out successfully."
+            message: "Logged out successfully."
         })
     } catch (error) {
         console.log(error);

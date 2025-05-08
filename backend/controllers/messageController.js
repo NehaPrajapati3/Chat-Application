@@ -1,12 +1,33 @@
 import { Conversation } from "../models/conversationModel.js";
 import { Message } from "../models/messageModel.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import cloudinary from "../config/cloudinary.js";
+import fs from "fs";
 
 export const sendMessage = async (req,res) => {
     try {
         const senderId = req.id;
         const receiverId = req.params.id;
-        const {message} = req.body;
+        let {message} = req.body;
+        console.log("req message ", req.body)
+        console.log("req files ", req.files)
+
+       if (req.files["file"]) {
+         const filePath = req.files["file"][0].path;
+        const uploadResult = await cloudinary.uploader.upload(filePath, {
+          folder: "uploads/ChatFiles/files",
+          resource_type:"auto",
+        });
+
+         console.log("resource_type ", uploadResult.resource_type);
+         const finalUrl = uploadResult.secure_url.replace(
+           "/image/",
+           `/${uploadResult.resource_type}/`
+         );
+
+         message = finalUrl;
+         fs.unlinkSync(filePath); // Delete local file after upload
+       }
 
         let gotConversation = await Conversation.findOne({
             participants:{$all : [senderId, receiverId]},
